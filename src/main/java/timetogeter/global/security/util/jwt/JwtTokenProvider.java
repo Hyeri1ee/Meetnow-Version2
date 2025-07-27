@@ -36,6 +36,7 @@ public class JwtTokenProvider implements TokenProvider {
 
     private final Key key;
     public JwtTokenProvider(@Value("${jwt.secretKey}") String secretKey){
+        log.info("//// Injected JWT secretKey: [{}]", secretKey);
         this.key = Keys.hmacShaKeyFor(
                 Decoders.BASE64.decode(secretKey));
     }
