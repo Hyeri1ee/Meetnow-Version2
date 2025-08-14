@@ -72,8 +72,11 @@ public class CalendarManageController {
     public BaseResponse<List<CalendarViewResponse2>> viewCalendar2(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @RequestBody CalendarViewRequest2 requests) throws Exception{
-        String userId = userPrincipal.getId();
+        long apiStart = System.currentTimeMillis(); // 전체 API 처리 시작
         List<CalendarViewResponse2> response = calendarViewService.viewCalendar2(requests);
+        long apiEnd = System.currentTimeMillis(); // 전체 API 처리 종료
+        log.info("Total /view2 API processing time {} ms", apiEnd - apiStart);
+
         return new BaseResponse<>(response);
     }
 
@@ -119,7 +122,6 @@ public class CalendarManageController {
         CalendarRewriteResponse1 response = calendarDetailService.rewriteCalendar1(requests);
         return new BaseResponse<>(response);
     }
-
 
 
 }

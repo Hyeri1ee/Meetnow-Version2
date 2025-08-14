@@ -50,16 +50,30 @@ public class CalendarViewService {
         List<String> scheduleIdList = request.scheduleIdList();
 
         // scheduleId에 해당하는 Schedule 객체들 조회
+        // ----------------------------
+        // 1. 쿼리 시간 측정
+        // ----------------------------
+        long queryStart = System.currentTimeMillis();
         List<Schedule> schedules = scheduleRepository.findByIdIn(scheduleIdList);
-
+        long end = System.currentTimeMillis();
+        long queryEnd = System.currentTimeMillis();
+        log.info("scheduleList find query time {} ms", queryEnd - queryStart);
         // Schedule -> CalendarViewResponse2 로 매핑
-        return schedules.stream()
+        // ----------------------------
+        // 2. DTO 매핑 시간 측정
+        // ----------------------------
+        long mappingStart = System.currentTimeMillis();
+        List<CalendarViewResponse2> response = schedules.stream()
                 .map(schedule -> new CalendarViewResponse2(
                         schedule.getTitle(),
                         schedule.getContent(),
                         schedule.getScheduleId()
                 ))
                 .collect(Collectors.toList());
+        long mappingEnd = System.currentTimeMillis();
+        log.info("DTO mapping time {} ms", mappingEnd - mappingStart);
+
+        return response;
     }
 
 }
