@@ -1,4 +1,3 @@
-docker-compose.v1.yml
 docker-compose.v2.yml
 
 .env

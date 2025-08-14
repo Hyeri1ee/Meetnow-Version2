@@ -48,5 +48,28 @@ services:
       interval: 5s
       retries: 10
 
+  ngrinder-controller:
+    image: ngrinder/controller:3.5
+    container_name: ngrinder-controller
+    ports:
+      - "8081:8080"  # UI 접속용
+    environment:
+      - TZ=Asia/Seoul
+    depends_on:
+      - meetnow-server
+    networks:
+      - default
+
+  ngrinder-agent:
+    image: ngrinder/agent:3.5
+    container_name: ngrinder-agent
+    environment:
+      - CONTROLLER_HOST=ngrinder-controller
+      - TZ=Asia/Seoul
+    depends_on:
+      - ngrinder-controller
+    networks:
+      - default
+
 volumes:
   mysql-data:
