@@ -36,9 +36,163 @@ public class GroupManageController {
 // 그룹 상세 - 그룹 초대하기(간소화.ver)
 //=====================
 
-    //1. 그룹 참가 url (http://localhost:8080/group/join/{groupId}) 을 공유후, 초대대상자(손님)이 들어가서 로그인후, 자신의 이메일 반환
+    /*
+    그룹 참가 URL 접속 후 로그인한 사용자의 이메일 반환
 
-    //2. 그후 가공된 정보들 가지고 서버에 아래 요청 http://localhost:8080/group/member/save/{groupId} post요청
+    [웹] 그룹 참가 URL (http://localhost:8080/api/v1/group/join/{groupId})에 접속 후 로그인
+    [서버] 로그인한 사용자의 이메일 반환
+     */
+    @Operation(
+            summary = "그룹 참가 - 이메일 조회",
+            description = """
+        그룹 참가 URL에 접속한 후 로그인한 사용자의 이메일을 반환합니다.
+        """,
+            security = @SecurityRequirement(name = "BearerAuth")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공",
+                    content = @Content(schema = @Schema(implementation = GetGroupJoinEmailResponse.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "요청 형식 오류",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = """
+                    { "code": 400, "message": "요청 형식이 올바르지 않습니다." }
+                    """)
+                    )
+            ),
+            @ApiResponse(responseCode = "401", description = "인증 실패",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = """
+                    { "code": 401, "message": "인증이 필요합니다." }
+                    """)
+                    )
+            ),
+            @ApiResponse(responseCode = "404", description = "그룹 또는 사용자 정보 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
+                            examples = {
+                                    @ExampleObject(name = "그룹 없음", value = """
+                            { "code": 404, "message": "존재하지 않는 그룹입니다." }
+                            """),
+                                    @ExampleObject(name = "사용자 없음", value = """
+                            { "code": 404, "message": "존재하지 않는 유저입니다." }
+                            """)
+                            }
+                    )
+            ),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = """
+                    { "code": 500, "message": "서버 내부 오류가 발생했습니다." }
+                    """)
+                    )
+            )
+    })
+    @SecurityRequirement(name = "BearerAuth")
+    @GetMapping(value = "/join/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public BaseResponse<GetGroupJoinEmailResponse> getGroupJoinEmail(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @PathVariable String groupId) {
+        String userId = userPrincipal.getId();
+        GetGroupJoinEmailResponse response = groupManageMemberService.getGroupJoinEmail(groupId, userId);
+        return new BaseResponse<>(response);
+    }
+
+    /*
+    그룹 멤버 저장 - 가공된 정보들을 데이터베이스에 저장
+
+    [웹] 가공된 정보들(groupId, encGroupKey, encUserId, encGroupId, encencGroupMemberId)을 body로 전송
+    [서버] GroupProxyUser와 GroupShareKey 테이블에 저장 후 그룹 참여 완료 메시지 반환
+     */
+    @Operation(
+            summary = "그룹 멤버 저장",
+            description = """
+        가공된 정보들을 받아 GroupProxyUser와 GroupShareKey 테이블에 저장합니다.
+        그룹 참여가 완료되면 성공 메시지를 반환합니다.
+        """,
+            security = @SecurityRequirement(name = "BearerAuth")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "그룹 참여 성공",
+                    content = @Content(schema = @Schema(implementation = JoinGroupResponse.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "요청 형식 오류 (필드 누락/유효성 실패)",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
+                            examples = {
+                                    @ExampleObject(name = "groupId 누락", value = """
+                            { "code": 400, "message": "groupId는 필수입니다." }
+                            """),
+                                    @ExampleObject(name = "encGroupKey 누락", value = """
+                            { "code": 400, "message": "encGroupKey는 필수입니다." }
+                            """),
+                                    @ExampleObject(name = "encUserId 누락", value = """
+                            { "code": 400, "message": "encUserId는 필수입니다." }
+                            """),
+                                    @ExampleObject(name = "encGroupId 누락", value = """
+                            { "code": 400, "message": "encGroupId는 필수입니다." }
+                            """),
+                                    @ExampleObject(name = "encencGroupMemberId 누락", value = """
+                            { "code": 400, "message": "encencGroupMemberId는 필수입니다." }
+                            """)
+                            }
+                    )
+            ),
+            @ApiResponse(responseCode = "401", description = "인증 실패",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = """
+                    { "code": 401, "message": "인증이 필요합니다." }
+                    """)
+                    )
+            ),
+            @ApiResponse(responseCode = "403", description = "권한 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = """
+                    { "code": 403, "message": "권한이 없습니다." }
+                    """)
+                    )
+            ),
+            @ApiResponse(responseCode = "404", description = "그룹 정보 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = """
+                    { "code": 404, "message": "존재하지 않는 그룹입니다." }
+                    """)
+                    )
+            ),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = """
+                    { "code": 500, "message": "서버 내부 오류가 발생했습니다." }
+                    """)
+                    )
+            )
+    })
+    @SecurityRequirement(name = "BearerAuth")
+    @PostMapping(value = "/member/save/{groupId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public BaseResponse<JoinGroupResponse> saveGroupMember(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @PathVariable String groupId,
+            @RequestBody SaveGroupMemberRequest request) {
+        String userId = userPrincipal.getId();
+        JoinGroupResponse response = groupManageMemberService.saveGroupMember(request, userId);
+        return new BaseResponse<>(response);
+    }
 
 //======================
 // 그룹 상세 - 그룹 초대하기 (Step1,2,3)

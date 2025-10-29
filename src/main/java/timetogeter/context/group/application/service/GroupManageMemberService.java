@@ -116,6 +116,45 @@ public class GroupManageMemberService {
     }
 
 //======================
+// 그룹 상세 - 그룹 초대하기(간소화.ver)
+//======================
+
+    // 그룹 참가 URL 접속 후 로그인한 사용자의 이메일 반환
+    public GetGroupJoinEmailResponse getGroupJoinEmail(String groupId, String userId) {
+        // 그룹 존재 여부 확인
+        groupRepository.findByGroupId(groupId)
+                .orElseThrow(() -> new GroupIdNotFoundException(BaseErrorCode.GROUP_ID_NOTFOUND, "[ERROR]: 존재하지 않는 그룹입니다: " + groupId));
+
+        // 사용자 이메일 조회
+        String email = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(BaseErrorCode.USER_NOT_FOUND, "[ERROR]: 존재하지 않는 유저입니다."))
+                .getEmail();
+
+        return new GetGroupJoinEmailResponse(email);
+    }
+
+    // 그룹 멤버 저장 - 가공된 정보들을 데이터베이스에 저장
+    @Transactional
+    public JoinGroupResponse saveGroupMember(SaveGroupMemberRequest request, String userId) {
+        String groupId = request.groupId(); //그룹 아이디
+        String encGroupKey = request.encGroupKey(); //개인키로 암호화한 그룹키
+        String encUserId = request.encUserId(); //그룹키로 암호화한 사용자 고유 아이디
+        String encGroupId = request.encGroupId(); //개인키로 암호화한 그룹 아이디
+        String encencGroupMemberId = request.encencGroupMemberId(); //개인키로 암호화한 encUserId
+
+        //GroupProxyUser에 저장
+        groupProxyUserRepository.save(GroupProxyUser.of(userId, encGroupId, encencGroupMemberId, System.currentTimeMillis()));
+
+        //GroupShareKey에 저장
+        groupShareKeyRepository.save(GroupShareKey.of(groupId, encUserId, encGroupKey));
+
+        // response 구성
+        Group joinedGroupName = groupRepository.findByGroupId(groupId)
+                .orElseThrow(() -> new GroupIdNotFoundException(BaseErrorCode.GROUP_ID_NOTFOUND, "[ERROR]: 존재하지 않는 그룹입니다: " + groupId));
+        return new JoinGroupResponse(joinedGroupName.getGroupName() + "그룹에 참여 완료했어요.");
+    }
+
+//======================
 // 그룹 관리 - 그룹 초대받기 (Step1)
 //======================
 
