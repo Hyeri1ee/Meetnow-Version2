@@ -33,7 +33,7 @@ public class GroupManageController {
     private final GroupManageDisplayService groupManageDisplayService;
 
 //=====================
-// 그룹 상세 - 그룹 초대하기(간소화.ver)
+// 그룹 상세 - 그룹 초대하기 step3 (간소화.ver)
 //=====================
 
     /*
@@ -197,165 +197,165 @@ public class GroupManageController {
 //======================
 // 그룹 상세 - 그룹 초대하기 (Step1,2,3)
 //======================
-/*
-//    /*
-//    그룹 상세 - 그룹 초대하기 - step1
-//
-//    [웹] 그룹원이 groupId, 개인키로 암호화한 그룹 아이디를 보냄 /api/v1/group/invite1 ->
-//    [서버] GroupProxyUser테이블 내 encencGroupMemberId 반환 ->
-//     */
-//    @Operation(
-//            summary = "그룹 초대 - Step1",
-//            description = """
-//        그룹원이 groupId와 개인키로 암호화한 그룹 아이디를 서버에 전송하면,
-//        서버는 GroupProxyUser 테이블에서 encencGroupMemberId를 반환합니다.
-//        """,
-//            security = @SecurityRequirement(name = "BearerAuth")
-//    )
-//    @ApiResponses({
-//            @ApiResponse(responseCode = "200", description = "성공",
-//                    content = @Content(schema = @Schema(implementation = InviteGroup1Response.class))
-//            ),
-//            @ApiResponse(responseCode = "400", description = "요청 형식 오류 (필드 누락/유효성 실패)",
-//                    content = @Content(
-//                            mediaType = "application/json",
-//                            schema = @Schema(implementation = ErrorResponse.class),
-//                            examples = {
-//                                    @ExampleObject(name = "groupId 누락", value = """
-//                    { "code": 400, "message": "groupId는 필수입니다." }
-//                    """),
-//                                    @ExampleObject(name = "encGroupId 누락", value = """
-//                    { "code": 400, "message": "encGroupId는 필수입니다." }
-//                    """)
-//                            }
-//                    )
-//            ),
-//            @ApiResponse(responseCode = "401", description = "인증 실패",
-//                    content = @Content(
-//                            mediaType = "application/json",
-//                            schema = @Schema(implementation = ErrorResponse.class),
-//                            examples = @ExampleObject(value = """
-//                { "code": 401, "message": "인증이 필요합니다." }
-//                """)
-//                    )
-//            ),
-//            @ApiResponse(responseCode = "403", description = "권한 없음",
-//                    content = @Content(
-//                            mediaType = "application/json",
-//                            schema = @Schema(implementation = ErrorResponse.class),
-//                            examples = @ExampleObject(value = """
-//                { "code": 403, "message": "권한이 없습니다." }
-//                """)
-//                    )
-//            ),
-//            @ApiResponse(responseCode = "422", description = "복호화/무결성 오류",
-//                    content = @Content(
-//                            mediaType = "application/json",
-//                            schema = @Schema(implementation = ErrorResponse.class),
-//                            examples = @ExampleObject(value = """
-//                { "code": 422, "message": "encGroupId 복호화 실패" }
-//                """)
-//                    )
-//            ),
-//            @ApiResponse(responseCode = "500", description = "서버 내부 오류",
-//                    content = @Content(
-//                            mediaType = "application/json",
-//                            schema = @Schema(implementation = ErrorResponse.class),
-//                            examples = @ExampleObject(value = """
-//                { "code": 500, "message": "서버 내부 오류가 발생했습니다." }
-//                """)
-//                    )
-//            )
-//    })
-//    @SecurityRequirement(name = "BearerAuth")
-//    @PostMapping(value = "/invite1", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-//    public BaseResponse<InviteGroup1Response> inviteGroup1(
-//            @AuthenticationPrincipal UserPrincipal userPrincipal,
-//            @RequestBody InviteGroup1Request request) throws Exception{
-//        String userId = userPrincipal.getId();
-//        InviteGroup1Response response = groupManageMemberService.inviteGroup1(request,userId);
-//        return new BaseResponse<>(response);
-//    }
-//
-//    /*
-//    그룹 상세 - 그룹 초대하기 - step2
-//
-//    [웹] 개인키로 encencGroupMemberId 복호화해서 encUserId 얻고,
-//		encUserId, groupId 로 encGroupKey 요청 /api/v1/group/invite2 ->
-//    [서버] GroupShareKey테이블 내 encGroupKey 반환->
-//    */
-//    @Operation(
-//            summary = "그룹 초대 - Step2",
-//            description = """
-//        개인키로 encencGroupMemberId를 복호화하여 encUserId를 획득 후,
-//        encUserId와 groupId로 encGroupKey를 요청합니다.
-//        """,
-//            security = @SecurityRequirement(name = "BearerAuth")
-//    )
-//    @ApiResponses({
-//            @ApiResponse(responseCode = "200", description = "성공",
-//                    content = @Content(schema = @Schema(implementation = InviteGroup2Response.class))
-//            ),
-//            @ApiResponse(responseCode = "400", description = "요청 형식 오류 (필드 누락/유효성 실패)",
-//                    content = @Content(
-//                            mediaType = "application/json",
-//                            schema = @Schema(implementation = ErrorResponse.class),
-//                            examples = {
-//                                    @ExampleObject(name = "encUserId 누락", value = """
-//                    { "code": 400, "message": "encUserId는 필수입니다." }
-//                    """),
-//                                    @ExampleObject(name = "groupId 누락", value = """
-//                    { "code": 400, "message": "groupId는 필수입니다." }
-//                    """)
-//                            }
-//                    )
-//            ),
-//            @ApiResponse(responseCode = "401", description = "인증 실패",
-//                    content = @Content(
-//                            mediaType = "application/json",
-//                            schema = @Schema(implementation = ErrorResponse.class),
-//                            examples = @ExampleObject(value = """
-//                { "code": 401, "message": "인증이 필요합니다." }
-//                """)
-//                    )
-//            ),
-//            @ApiResponse(responseCode = "403", description = "권한 없음",
-//                    content = @Content(
-//                            mediaType = "application/json",
-//                            schema = @Schema(implementation = ErrorResponse.class),
-//                            examples = @ExampleObject(value = """
-//                { "code": 403, "message": "권한이 없습니다." }
-//                """)
-//                    )
-//            ),
-//            @ApiResponse(responseCode = "422", description = "복호화/무결성 오류",
-//                    content = @Content(
-//                            mediaType = "application/json",
-//                            schema = @Schema(implementation = ErrorResponse.class),
-//                            examples = @ExampleObject(value = """
-//                { "code": 422, "message": "encUserId 복호화 실패" }
-//                """)
-//                    )
-//            ),
-//            @ApiResponse(responseCode = "500", description = "서버 내부 오류",
-//                    content = @Content(
-//                            mediaType = "application/json",
-//                            schema = @Schema(implementation = ErrorResponse.class),
-//                            examples = @ExampleObject(value = """
-//                { "code": 500, "message": "서버 내부 오류가 발생했습니다." }
-//                """)
-//                    )
-//            )
-//    })
-//    @SecurityRequirement(name = "BearerAuth")
-//    @PostMapping(value = "/invite2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-//    public BaseResponse<InviteGroup2Response> inviteGroup2(
-//            @AuthenticationPrincipal UserPrincipal userPrincipal,
-//            @RequestBody InviteGroup2Request request) throws Exception{
-//        InviteGroup2Response response = groupManageMemberService.inviteGroup2(request);
-//        return new BaseResponse<>(response);
-//    }
-//
+
+    /*
+    그룹 상세 - 그룹 초대하기 - step1
+
+    [웹] 그룹원이 groupId, 개인키로 암호화한 그룹 아이디를 보냄 /api/v1/group/invite1 ->
+    [서버] GroupProxyUser테이블 내 encencGroupMemberId 반환 ->
+     */
+    @Operation(
+            summary = "그룹 초대 - Step1",
+            description = """
+        그룹원이 groupId와 개인키로 암호화한 그룹 아이디를 서버에 전송하면,
+        서버는 GroupProxyUser 테이블에서 encencGroupMemberId를 반환합니다.
+        """,
+            security = @SecurityRequirement(name = "BearerAuth")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공",
+                    content = @Content(schema = @Schema(implementation = InviteGroup1Response.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "요청 형식 오류 (필드 누락/유효성 실패)",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
+                            examples = {
+                                    @ExampleObject(name = "groupId 누락", value = """
+                    { "code": 400, "message": "groupId는 필수입니다." }
+                    """),
+                                    @ExampleObject(name = "encGroupId 누락", value = """
+                    { "code": 400, "message": "encGroupId는 필수입니다." }
+                    """)
+                            }
+                    )
+            ),
+            @ApiResponse(responseCode = "401", description = "인증 실패",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = """
+                { "code": 401, "message": "인증이 필요합니다." }
+                """)
+                    )
+            ),
+            @ApiResponse(responseCode = "403", description = "권한 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = """
+                { "code": 403, "message": "권한이 없습니다." }
+                """)
+                    )
+            ),
+            @ApiResponse(responseCode = "422", description = "복호화/무결성 오류",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = """
+                { "code": 422, "message": "encGroupId 복호화 실패" }
+                """)
+                    )
+            ),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = """
+                { "code": 500, "message": "서버 내부 오류가 발생했습니다." }
+                """)
+                    )
+            )
+    })
+    @SecurityRequirement(name = "BearerAuth")
+    @PostMapping(value = "/invite1", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public BaseResponse<InviteGroup1Response> inviteGroup1(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestBody InviteGroup1Request request) throws Exception{
+        String userId = userPrincipal.getId();
+        InviteGroup1Response response = groupManageMemberService.inviteGroup1(request,userId);
+        return new BaseResponse<>(response);
+    }
+
+    /*
+    그룹 상세 - 그룹 초대하기 - step2
+
+    [웹] 개인키로 encencGroupMemberId 복호화해서 encUserId 얻고,
+		encUserId, groupId 로 encGroupKey 요청 /api/v1/group/invite2 ->
+    [서버] GroupShareKey테이블 내 encGroupKey 반환->
+    */
+    @Operation(
+            summary = "그룹 초대 - Step2",
+            description = """
+        개인키로 encencGroupMemberId를 복호화하여 encUserId를 획득 후,
+        encUserId와 groupId로 encGroupKey를 요청합니다.
+        """,
+            security = @SecurityRequirement(name = "BearerAuth")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공",
+                    content = @Content(schema = @Schema(implementation = InviteGroup2Response.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "요청 형식 오류 (필드 누락/유효성 실패)",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
+                            examples = {
+                                    @ExampleObject(name = "encUserId 누락", value = """
+                    { "code": 400, "message": "encUserId는 필수입니다." }
+                    """),
+                                    @ExampleObject(name = "groupId 누락", value = """
+                    { "code": 400, "message": "groupId는 필수입니다." }
+                    """)
+                            }
+                    )
+            ),
+            @ApiResponse(responseCode = "401", description = "인증 실패",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = """
+                { "code": 401, "message": "인증이 필요합니다." }
+                """)
+                    )
+            ),
+            @ApiResponse(responseCode = "403", description = "권한 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = """
+                { "code": 403, "message": "권한이 없습니다." }
+                """)
+                    )
+            ),
+            @ApiResponse(responseCode = "422", description = "복호화/무결성 오류",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = """
+                { "code": 422, "message": "encUserId 복호화 실패" }
+                """)
+                    )
+            ),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = """
+                { "code": 500, "message": "서버 내부 오류가 발생했습니다." }
+                """)
+                    )
+            )
+    })
+    @SecurityRequirement(name = "BearerAuth")
+    @PostMapping(value = "/invite2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public BaseResponse<InviteGroup2Response> inviteGroup2(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestBody InviteGroup2Request request) throws Exception{
+        InviteGroup2Response response = groupManageMemberService.inviteGroup2(request);
+        return new BaseResponse<>(response);
+    }
+
 //    /*
 //    그룹 상세 - 그룹 초대하기 - step3
 //
