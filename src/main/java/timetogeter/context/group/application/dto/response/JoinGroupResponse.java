@@ -1,6 +1,6 @@
 package timetogeter.context.group.application.dto.response;
 
 public record JoinGroupResponse(
-        String result
+        String message
 ) {
 }

@@ -1,6 +1,7 @@
 package timetogeter.context.group.presentation.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -51,7 +52,19 @@ public class GroupManageController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "성공",
-                    content = @Content(schema = @Schema(implementation = GetGroupJoinEmailResponse.class))
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GetGroupJoinEmailResponse.class),
+                            examples = @ExampleObject(value = """
+                    {
+                      "code": 200,
+                      "message": "요청에 성공했습니다.",
+                      "result": {
+                        "email": "user@example.com"
+                      }
+                    }
+                    """)
+                    )
             ),
             @ApiResponse(responseCode = "400", description = "요청 형식 오류",
                     content = @Content(
@@ -99,7 +112,8 @@ public class GroupManageController {
     @GetMapping(value = "/join/{groupId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<GetGroupJoinEmailResponse> getGroupJoinEmail(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @PathVariable String groupId) {
+            @Parameter(description = "그룹 ID", required = true, example = "group123")
+            @PathVariable("groupId") String groupId) {
         String userId = userPrincipal.getId();
         GetGroupJoinEmailResponse response = groupManageMemberService.getGroupJoinEmail(groupId, userId);
         return new BaseResponse<>(response);
@@ -121,7 +135,19 @@ public class GroupManageController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "그룹 참여 성공",
-                    content = @Content(schema = @Schema(implementation = JoinGroupResponse.class))
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = JoinGroupResponse.class),
+                            examples = @ExampleObject(value = """
+                    {
+                      "code": 200,
+                      "message": "요청에 성공했습니다.",
+                      "result": {
+                        "message": "우리그룹그룹에 참여 완료했어요."
+                      }
+                    }
+                    """)
+                    )
             ),
             @ApiResponse(responseCode = "400", description = "요청 형식 오류 (필드 누락/유효성 실패)",
                     content = @Content(
@@ -184,10 +210,9 @@ public class GroupManageController {
             )
     })
     @SecurityRequirement(name = "BearerAuth")
-    @PostMapping(value = "/member/save/{groupId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/member/save", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<JoinGroupResponse> saveGroupMember(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @PathVariable String groupId,
             @RequestBody SaveGroupMemberRequest request) {
         String userId = userPrincipal.getId();
         JoinGroupResponse response = groupManageMemberService.saveGroupMember(request, userId);
